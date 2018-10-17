@@ -28,36 +28,27 @@ def playerStatusOnJoin(playerName):
 def playerStatusOnDisconnect(playerName):
     changePlayerStatus(playerName, PLAYERSTATUS.DISCONNECTED)
 
+def _getPlayersByStatus(status):
+    temp = {}
+    for k, v in _players.items():
+        if x == status:
+            temp[k] = v
+    return temp
+
 def getPlayers():
     return _players
 
 def getConnectedPlayers():
-    temp = {}
-    for k, v in _players.items():
-        if x == PLAYERSTATUS.CONNECTED:
-            temp[k] = v
-    return temp
+    return _getPlayersByStatus(PLAYERSTATUS.CONNECTED)
 
 def getSpectatingPlayers():
-    temp = {}
-    for k, v in _players.items():
-        if x == PLAYERSTATUS.SPECTATING:
-            temp[k] = v
-    return temp
+    return _getPlayersByStatus(PLAYERSTATUS.SPECTATING)
 
 def getPlayingPlayers():
-    temp = {}
-    for k, v in _players.items():
-        if x == PLAYERSTATUS.PLAYING:
-            temp[k] = v
-    return temp
+    return _getPlayersByStatus(PLAYERSTATUS.PLAYING)
 
 def getDisconnectedPlayers():
-    temp = {}
-    for k, v in _players.items():
-        if x == PLAYERSTATUS.DISCONNECTED:
-            temp[k] = v
-    return temp
+    return _getPlayersByStatus(PLAYERSTATUS.DISCONNECTED)
 
 def _cleanup():
     global _players
@@ -68,4 +59,5 @@ def _cleanup():
     _players = temp
 
 _prefix = "\x1b[1;33m\x1b[m"
+# _suffix =
 _players = {}
