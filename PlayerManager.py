@@ -1,5 +1,6 @@
 from events import Events
 from enum import Enum
+import re
 
 
 class PLAYERSTATUS(Enum):
@@ -8,32 +9,60 @@ class PLAYERSTATUS(Enum):
     PLAYING = 3
     DISCONNECTED = 4
 
-def changePlayerStatus(playerName, status):
-    _players[playerName] = status
-    _cleanup()
 
-@Events.PLAYERCONNECTED.connect
-def playerStatusOnConnect(playerName):
-    changePlayerStatus(playerName, PLAYERSTATUS.CONNECTED)
+class Player:
+    def getName(self, name):
+        return self.name
 
-@Events.PLAYERSPECTATE.connect
-def playerStatusOnSpectate(playerName):
-    changePlayerStatus(playerName, PLAYERSTATUS.SPECTATING)
+    def getScore(self, score):
+        return self.score
 
-@Events.PLAYERJOIN.connect
-def playerStatusOnJoin(playerName):
-    changePlayerStatus(playerName, PLAYERSTATUS.PLAYING)
+    def getStatus(self, status):
+        return self.status
 
-@Events.PLAYERDISCONNECT.connect
-def playerStatusOnDisconnect(playerName):
-    changePlayerStatus(playerName, PLAYERSTATUS.DISCONNECTED)
+    def changeName(self, name):
+        self.name = name
+
+    def addToScore(self, x=1):
+        self.score += x
+
+    def setStatus(self, status):
+        self.status = status
+
+    def __init__(self, name, status, score=-666):
+        self.name = name
+        self.status = status
+        self.score = score
+
+
+def _changePlayerStatus(playerName, status):
+    temp = _extractName.match(playerName)
+    if temp:
+        name = temp.groups()[0]
+        for player in _players:
+            if player.getName() == name:
+                player.setStatus(status)
+                break
+
+@Events.PLAYER_CONNECTED.connect
+def _playerStatusOnConnect(playerName):
+    # Events.PLAYER_JOIN.
+    _changePlayerStatus(playerName, PLAYERSTATUS.CONNECTED)
+
+@Events.PLAYER_SPECTATE.connect
+def _playerStatusOnSpectate(playerName):
+    _changePlayerStatus(playerName, PLAYERSTATUS.SPECTATING)
+
+@Events.PLAYER_JOIN.connect
+def _playerStatusOnJoin(playerName):
+    _changePlayerStatus(playerName, PLAYERSTATUS.PLAYING)
+
+@Events.PLAYER_DISCONNECT.connect
+def _playerStatusOnDisconnect(playerName):
+    _changePlayerStatus(playerName, PLAYERSTATUS.DISCONNECTED)
 
 def _getPlayersByStatus(status):
-    temp = {}
-    for k, v in _players.items():
-        if x == status:
-            temp[k] = v
-    return temp
+    return list(filter(lambda p: p.getStatus() == status, _players))
 
 def getPlayers():
     return _players
@@ -59,5 +88,6 @@ def _cleanup():
     _players = temp
 
 _prefix = "\x1b[1;33m\x1b[m"
+_extractName = re.compile(r"^(?:\x1b\[m|\x1b\[\d\;\d+m)*(.*?)(?:\x1b)")
 # _suffix =
-_players = {}
+_players = []
