@@ -1,4 +1,4 @@
-from events import Events
+import events
 from enum import Enum
 import re
 
@@ -11,28 +11,37 @@ class PLAYERSTATUS(Enum):
 
 
 class Player:
-    def getName(self, name):
-        return self.name
+    @property
+    def name(self):
+        return self._name
 
-    def getScore(self, score):
-        return self.score
+    @name.setter
+    def name(self, name):
+        self._name = name
 
-    def getStatus(self, status):
-        return self.status
+    @property
+    def status(self):
+        return self._status
 
-    def changeName(self, name):
-        self.name = name
+    @status.setter
+    def status(self, status):
+        self._status = status
+
+    @property
+    def score(self):
+        return self._score
+
+    @score.setter
+    def score(self, score):
+        self._score = score
 
     def addToScore(self, x=1):
-        self.score += x
-
-    def setStatus(self, status):
-        self.status = status
+        self._score += x
 
     def __init__(self, name, status, score=-666):
-        self.name = name
-        self.status = status
-        self.score = score
+        self._name = name
+        self._status = status
+        self._score = score
 
 
 def _changePlayerStatus(playerName, status):
@@ -40,29 +49,29 @@ def _changePlayerStatus(playerName, status):
     if temp:
         name = temp.groups()[0]
         for player in _players:
-            if player.getName() == name:
-                player.setStatus(status)
+            if player.name == name:
+                player.status = status
                 break
 
-@Events.PLAYER_CONNECTED.connect
+@events.PlayerConnectEvent.connect
 def _playerStatusOnConnect(playerName):
     # Events.PLAYER_JOIN.
     _changePlayerStatus(playerName, PLAYERSTATUS.CONNECTED)
 
-@Events.PLAYER_SPECTATE.connect
+@events.PlayerSpectateEvent.connect
 def _playerStatusOnSpectate(playerName):
     _changePlayerStatus(playerName, PLAYERSTATUS.SPECTATING)
 
-@Events.PLAYER_JOIN.connect
+@events.PlayerSpectateEvent.connect
 def _playerStatusOnJoin(playerName):
     _changePlayerStatus(playerName, PLAYERSTATUS.PLAYING)
 
-@Events.PLAYER_DISCONNECT.connect
+@events.PlayerDisconnectEvent.connect
 def _playerStatusOnDisconnect(playerName):
     _changePlayerStatus(playerName, PLAYERSTATUS.DISCONNECTED)
 
 def _getPlayersByStatus(status):
-    return list(filter(lambda p: p.getStatus() == status, _players))
+    return list(filter(lambda p: p.status == status, _players))
 
 def getPlayers():
     return _players
@@ -79,15 +88,14 @@ def getPlayingPlayers():
 def getDisconnectedPlayers():
     return _getPlayersByStatus(PLAYERSTATUS.DISCONNECTED)
 
-def _cleanup():
-    global _players
-    temp = {}
-    for k, v in _players.items():
-        if k.startswith(_prefix):
-            temp[k] = v
-    _players = temp
+# def _cleanup():
+#     global _players
+#     temp = {}
+#     for k, v in _players.items():
+#         if k.startswith(_prefix):
+#             temp[k] = v
+#     _players = temp
 
 _prefix = "\x1b[1;33m\x1b[m"
 _extractName = re.compile(r"^(?:\x1b\[m|\x1b\[\d\;\d+m)*(.*?)(?:\x1b)")
-# _suffix =
 _players = []
