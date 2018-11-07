@@ -1,6 +1,10 @@
 from subprocess import Popen, PIPE
-from events import Events
+from events import Event
+# import events
 import PlayerManager
+import re
+
+regex = re.compile("^(?:\x1b\[m|\x1b\[\d\;\d+m)*(.*?)\x1b\[m: (.*)")
 
 def startProcess(cmd):
     return Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True, bufsize=1)
@@ -22,33 +26,29 @@ cmd = "/home/nathan/xonoticgit/xonotic/all run sdl"
 
 def outputStream():
     lines = []
-    with open("output2.txt", "rb") as f:
+    with open("outputVoid.txt", "rb") as f:
         lines = f.read().decode("utf-8").split("\n")
+
     for x in lines:
-        if "connected" in x and "ahh" in x:
-            yield x
+        # if "\x1b[m:" in x and not regex.match(x):
+        yield x
 
+events = Event.__subclasses__()
+# print(events)9
+debug = events.pop()
+_fragMsg = re.compile("^(?:(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*? .*?(?:\x1b\[[\d;m]+)+(.*?)(?:\x1b\[[\d;m]+)+.*'s (.*?) \(near (.*)\)(?:,[A-z\s]+(\d+))?|(?:(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*? .*?(?:\x1b\[[\d;m]+)+(.*?)(?:\x1b\[[\d;m]+)+).*?(\w+) \(near (.*)\))")
+_suicideMsg = re.compile("^(?:\x1b\[\d\;\d+m)?(.*?)\x1b\[.{4}m(?!.*Shotgun)(?!.*'s).*? (\w+) \(near (.*?)\)")
+# _suicideMsg = re.compile("^(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*? (\w+) \(near (.*?)\)")
 for line in outputStream():
-#     if "MQC Build information:" in line:
-#         initMsgs = True
-#
-#     if not initMsgs:
-#         continue
-#
-    if line.endswith(" connected\x1b[m"):
-        Events.PLAYER_CONNECTED.send(line[:line.index(" connected\x1b[m")])
-    elif line.endswith(" is now spectating\x1b[m"):
-        Events.PLAYER_SPECTATE.send(line[:line.index(" is now spectating\x1b[m")])
-    # TODO: ctf message is like "is now playing on the RED/BLUE team"
-    elif line.endswith(" is now playing\x1b[m"):
-        Events.PLAYER_JOIN.send(line[:line.index(" is now playing\x1b[m")])
-    elif line.endswith(" disconnected\x1b[m"):
-        Events.PLAYER_DISCONNECT.send(line[:line.index(" disconnected\x1b[m")])
-    print(line)
-    print([line])
-    # print([x for x in line])
+    activeEvents = []
+    for e in events:9
+        if e.check(line):
+            activeEvents.append(e)
 
-for k, v in PlayerManager.getPlayers().items():
-    pass
-    # print("{}: {}".format(k, v))
-    # print(repr(player))
+    if activeEvents:
+        for e in activeEvents:
+            print(line, end="")
+            print(e)
+    else:
+        print(line, end="")
+        print(debug)
