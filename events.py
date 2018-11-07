@@ -31,8 +31,6 @@ class Event(ABC):
     def fire(*args, **kwargs):
         for func in Event._handlers:
             func(*args, **kwargs)
-    def __new__(cls):
-        _events.append(cls)
 
 class PlayerConnectingEvent(Event):
 	@classmethod
@@ -66,23 +64,23 @@ class ChatMsgEvent(Event):
 
     @classmethod
     def check(cls, line):
-        return True if _extractMsg.findall(line) else False
+        return True if cls._chatMsg.findall(line) else False
 
 class FragEvent(Event):
-    _fragMsg = re.compile("^(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*?\x1b\[m(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*?(?:'s (.*?))? \(near (.*)\)")
+    _fragMsg = re.compile("^(?:(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*? .*?(?:\x1b\[[\d;m]+)+(.*?)(?:\x1b\[[\d;m]+)+.*'s (.*?) \(near (.*)\)(?:,[A-z\s]+(\d+))?|(?:(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*? .*?(?:\x1b\[[\d;m]+)+(.*?)(?:\x1b\[[\d;m]+)+).*?(\w+) \(near (.*)\))")
 
     @classmethod
     def check(cls, line):
-        pass
+        return True if cls._fragMsg.match(line) else False
 
 class SuicideEvent(Event):
-    _suicideMsg = re.compile("^(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*? (\w+) \(near (.*?)\)")
+    _suicideMsg = re.compile("^(?:\x1b\[\d\;\d+m)?(.*?)\x1b\[.{4}m(?!.*Shotgun)(?!.*'s).*? (\w+) \(near (.*?)\)")
 
     @classmethod
     def check(cls, line):
-        pass9
+        return True if cls._suicideMsg.match(line) else False
 
 class DebugEvent(Event):
     @classmethod
-    def check(cls):
-        pass
+    def check(cls, line):
+        return True
