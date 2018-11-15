@@ -1,6 +1,7 @@
 import events
 from enum import Enum
 import re
+from collections import namedtuple
 
 
 class PLAYERSTATUS(Enum):
@@ -9,39 +10,8 @@ class PLAYERSTATUS(Enum):
     PLAYING = 3
     DISCONNECTED = 4
 
-
-class Player:
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        self._name = name
-
-    @property
-    def status(self):
-        return self._status
-
-    @status.setter
-    def status(self, status):
-        self._status = status
-
-    @property
-    def score(self):
-        return self._score
-
-    @score.setter
-    def score(self, score):
-        self._score = score
-
-    def addToScore(self, x=1):
-        self._score += x
-
-    def __init__(self, name, status, score=-666):
-        self._name = name
-        self._status = status
-        self._score = score
+_player = namedtuple("Player", ["name", "status", "score"])
+Player = lambda name, status, score=-666: _player(name, status, score)
 
 class PlayerManager:
     _extractName = re.compile(r"^(?:\x1b\[m|\x1b\[\d\;\d+m)*(.*?)(?:\x1b)")
@@ -76,7 +46,7 @@ class PlayerManager:
         return list(filter(lambda p: p.status == status, self._players))
 
     def getPlayers(self):
-        return self_players
+        return self._players
 
     def getConnectedPlayers(self):
         return self._getPlayersByStatus(PLAYERSTATUS.CONNECTED)

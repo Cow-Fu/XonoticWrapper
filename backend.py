@@ -1,6 +1,5 @@
 from subprocess import Popen, PIPE
-from events import Event
-# import events
+from events import Event, DebugEvent, ChatMsgEvent
 import PlayerManager
 import re
 
@@ -26,29 +25,36 @@ cmd = "/home/nathan/xonoticgit/xonotic/all run sdl"
 
 def outputStream():
     lines = []
-    with open("outputVoid.txt", "rb") as f:
+    with open("outputCmd.txt", "rb") as f:
         lines = f.read().decode("utf-8").split("\n")
 
     for x in lines:
-        # if "\x1b[m:" in x and not regex.match(x):
         yield x
 
 events = Event.__subclasses__()
-# print(events)9
-debug = events.pop()
-_fragMsg = re.compile("^(?:(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*? .*?(?:\x1b\[[\d;m]+)+(.*?)(?:\x1b\[[\d;m]+)+.*'s (.*?) \(near (.*)\)(?:,[A-z\s]+(\d+))?|(?:(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*? .*?(?:\x1b\[[\d;m]+)+(.*?)(?:\x1b\[[\d;m]+)+).*?(\w+) \(near (.*)\))")
-_suicideMsg = re.compile("^(?:\x1b\[\d\;\d+m)?(.*?)\x1b\[.{4}m(?!.*Shotgun)(?!.*'s).*? (\w+) \(near (.*?)\)")
-# _suicideMsg = re.compile("^(?:\x1b\[\d\;\d+m)?(.*?)\x1b.*? (\w+) \(near (.*?)\)")
+# for x in events:
+#     if x._exclude == True:
+#         print(x)
+#         exit()
+# events.remove(debug)
+for x in events:
+    if x is DebugEvent:
+        debug = x
+        break
+events.remove(debug)
+
 for line in outputStream():
+    if line == "":
+        continue
     activeEvents = []
-    for e in events:9
+    for e in events:
         if e.check(line):
             activeEvents.append(e)
 
     if activeEvents:
         for e in activeEvents:
-            print(line, end="")
             print(e)
+            e.fire(line)
+            print("{}{}".format(line, e))
     else:
-        print(line, end="")
-        print(debug)
+        print("{}{}".format(line, debug))

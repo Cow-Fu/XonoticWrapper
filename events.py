@@ -4,6 +4,7 @@ import re
 from abc import ABC, abstractmethod
 
 class Event(ABC):
+    _exclude = False
     _handlers = []
 
     @classmethod
@@ -23,6 +24,7 @@ class Event(ABC):
         def wrapper(*args, **kwargs):
             func(*args, **kwargs)
         cls.addHandler(func)
+        return wrapper
 
     @abstractmethod
     def check(*args, **kwargs):
@@ -80,7 +82,16 @@ class SuicideEvent(Event):
     def check(cls, line):
         return True if cls._suicideMsg.match(line) else False
 
+class CmdEvent(Event):
+    _exclude = True
+    _last_cmd = None
+
+    @classmethod
+    def check(cls, line):
+        return cls._last_cmd == line
+
 class DebugEvent(Event):
+    _exclude = True
     @classmethod
     def check(cls, line):
         return True
