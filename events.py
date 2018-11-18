@@ -113,16 +113,20 @@ class FragEvent(Event):
     def check(cls, line):
         temp = cls._fragMsg.match(line)
         if temp:
+            print(temp.groups())
             temp = tuple(filter(lambda x: x, temp.groups()))
-            cls._cache["line"] = temp[0]
-            cls._cache["victim"] = temp[1]
-            cls._cache["attacker"] = temp[2]
-            cls._cache["weapon"] = temp[3]
-            cls._cache["location"] = temp[4]
+            print(temp)
+            cls._cache["victim"] = temp[0]
+            cls._cache["attacker"] = temp[1]
+            cls._cache["weapon"] = temp[2]
             try:
-                cls._cache["fragstreak"] = temp[5]
+                cls._cache["location"] = temp[3]
+                cls._cache["fragstreak"] = temp[4]
             except IndexError:
-                cls._cache["fragstreak"] = None
+                if "location" not in cls._cache:
+                    cls._cache["location"] = None
+                if "fragstreak" not in cls._cache:
+                    cls._cache["fragstreak"] = None
             finally:
                 return True
         else:
@@ -130,11 +134,19 @@ class FragEvent(Event):
         return False
 
 class SuicideEvent(Event):
-    _suicideMsg = re.compile("^(?:\x1b\[\d\;\d+m)?(.*?)\x1b\[.{4}m(?!.*Shotgun)(?!.*'s).*? (\w+) \(near (.*?)\)")
+    _suicideMsg = re.compile("^(?:\x1b\[\d\;\d+m)?(.*?)\x1b\[.{4}m(?!.*Shotgun)(?!.*'s).*? ([A-Z]\w+|Electro)?(?: bolts)? ?\(near (.*?)\)")
 
     @classmethod
     def check(cls, line):
-        return True if cls._suicideMsg.match(line) else False
+        temp = cls._suicideMsg.match(line)
+        if temp:
+            cls._cache["line"] = temp[0]
+            cls._cache["name"] = temp[1]
+            cls._cache["weapon"] = temp[2]
+            cls._cache["location"] = temp[3]
+            return True
+        cls._cache = {}
+        return False
 
 class CmdEvent(Event):
     _exclude = True
