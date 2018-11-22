@@ -3,13 +3,6 @@ import re
 
 from abc import ABC, abstractmethod
 
-# class Singleton(type):
-#     _instances = {}
-#     def __call__(cls, *args, **kwargs):
-#         if cls not in cls._instances:
-#             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-#         return cls._instances[cls]
-
 class Event(ABC):
     _exclude = False
     _has_handler = False
@@ -46,7 +39,7 @@ class PlayerConnectingEvent(Event):
     @classmethod
     def check(cls, line):
         try:
-            cls._cache["name"] = line[line.index(" is connecting...")]
+            cls._cache["name"] = line[:line.index(" is connecting...")]
             return True
         except ValueError:
             cls._cache = {}
@@ -56,7 +49,7 @@ class PlayerConnectEvent(Event):
     @classmethod
     def check(cls, line):
         try:
-            cls._cache["name"] = line[line.index(" connected\x1b[m")]
+            cls._cache["name"] = line[:line.index(" connected\x1b[m")]
             return True
         except ValueError:
             cls._cache = {}
@@ -66,7 +59,7 @@ class PlayerSpectateEvent(Event):
     @classmethod
     def check(cls, line):
         try:
-            cls._cache["name"] = line[line.index(" is now spectating\x1b[m")]
+            cls._cache["name"] = line[:line.index(" is now spectating\x1b[m")]
             return True
         except ValueError:
             cls._cache = {}
@@ -76,7 +69,7 @@ class PlayerJoinEvent(Event):
     @classmethod
     def check(cls, line):
         try:
-            cls._cache["name"] = line[line.index(" is now playing\x1b[m")]
+            cls._cache["name"] = line[:line.index(" is now playing\x1b[m")]
             return True
         except ValueError:
             cls._cache = {}
@@ -86,7 +79,7 @@ class PlayerDisconnectEvent(Event):
     @classmethod
     def check(cls, line):
         try:
-            cls._cache["name"] = line[line.index(" disconnected\x1b[m")]
+            cls._cache["name"] = line[:line.index(" disconnected\x1b[m")]
             return True
         except ValueError:
             cls._cache = {}
@@ -113,9 +106,7 @@ class FragEvent(Event):
     def check(cls, line):
         temp = cls._fragMsg.match(line)
         if temp:
-            print(temp.groups())
             temp = tuple(filter(lambda x: x, temp.groups()))
-            print(temp)
             cls._cache["victim"] = temp[0]
             cls._cache["attacker"] = temp[1]
             cls._cache["weapon"] = temp[2]
