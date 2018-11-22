@@ -2,6 +2,7 @@ import events
 from enum import Enum
 import re
 from collections import namedtuple
+from events import PlayerJoinEvent, PlayerConnectEvent, PlayerSpectateEvent, PlayerConnectingEvent, PlayerDisconnectEvent
 
 
 class PLAYERSTATUS(Enum):
@@ -16,6 +17,9 @@ Player = lambda name, status, score=-666: _player(name, status, score)
 class PlayerManager:
     _extractName = re.compile(r"^(?:\x1b\[m|\x1b\[\d\;\d+m)*(.*?)(?:\x1b)")
 
+    def __init__(self):
+        self._players = []
+
     def _changePlayerStatus(self, playerName, status):
         temp = PlayerManager._extractName.match(playerName)
         if temp:
@@ -24,6 +28,13 @@ class PlayerManager:
                 if player.name == name:
                     player.status = status
                     break
+
+    @staticmethod
+    def stripName(line):
+        temp = PlayerManager._extractName(line)
+        if temp:
+            return temp.groups()[0]
+        return None
 
     @events.PlayerConnectEvent.connect
     def _playerStatusOnConnect(self, playerName):
@@ -59,6 +70,3 @@ class PlayerManager:
 
     def getDisconnectedPlayers(self):
         return self._getPlayersByStatus(PLAYERSTATUS.DISCONNECTED)
-
-    def __init__(self):
-        self._players = []
