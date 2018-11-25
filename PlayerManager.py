@@ -1,8 +1,7 @@
 import events
 from enum import Enum
 import re
-from collections import namedtuple
-from LineParser import stripSpecialChars
+from LineParser import stripSpecialChars, _REPLACE_CHAR
 from events import PlayerJoinEvent, PlayerConnectEvent, PlayerSpectateEvent, PlayerConnectingEvent, PlayerDisconnectEvent
 
 
@@ -12,30 +11,24 @@ class PLAYERSTATUS(Enum):
     PLAYING = 3
     DISCONNECTED = 4
 
-_playerFactory = namedtuple("Player", ["name", "status", "score"])
-Player = lambda name, status, score=-666: _playerFactory(name, status, score)
-
-# _extractName = re.compile(r"^(?:\x1b\[m|\x1b\[\d\;\d+m)*(.*?)(?:\x1b)")
+class Player:
+    def __init__(self, name, parsedName, status, score=-666):
+        self.name = name
+        self.parsedName = parsedName
+        self.status = status
+        self.score = score
 
 _players = []
 
 def _changePlayerStatus(playerName, status):
-    print(_players)
-    # temp = _extractName.match(playerName)
-    if temp:
-        name = temp.groups()[0]
-        for player in _players:
-            print("{}=={}=={}".format(player.name, name, player.name == name))
-            if player.name == name:
-                player.status = status
-                return
-        _players.append(Player(playerName, status))
+    parsedName = "".join(stripSpecialChars(playerName)).replace(_REPLACE_CHAR, "")
 
-def stripName(line):
-    temp = PlayerManager._extractName(line)
-    if temp:
-        return temp.groups()[0]
-    return None
+    for player in _players:
+        if player.parsedName == parsedName:
+            player.status = status
+            return
+    _players.append(Player(playerName, parsedName, status))
+
 
 @PlayerConnectEvent.connect
 def _playerStatusOnConnect(name):
