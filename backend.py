@@ -33,13 +33,9 @@ def lorax(victim, attacker, weapon, location, fragstreak):
 
 
 
-# TODO: the following should probably be made into some type of event so we know when its init is complete
-# and commands can be ran. Perhaps an echo should be ran after commands as well, so indicate they've finished
-# writer("echo Xonwrapper init complete")
 activeEvents = list(filter(lambda x: not x._exclude, Event.__subclasses__()))
 passiveEvents = list(filter(lambda x: x._exclude, Event.__subclasses__()))
 
-# writer, process = startXonoticProcess()
 writer, process = startXonoticProcess()
 
 streamWriter = XonInput(process)
