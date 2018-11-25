@@ -2,6 +2,7 @@ import events
 from enum import Enum
 import re
 from collections import namedtuple
+from LineParser import stripSpecialChars
 from events import PlayerJoinEvent, PlayerConnectEvent, PlayerSpectateEvent, PlayerConnectingEvent, PlayerDisconnectEvent
 
 
@@ -11,62 +12,62 @@ class PLAYERSTATUS(Enum):
     PLAYING = 3
     DISCONNECTED = 4
 
-_player = namedtuple("Player", ["name", "status", "score"])
-Player = lambda name, status, score=-666: _player(name, status, score)
+_playerFactory = namedtuple("Player", ["name", "status", "score"])
+Player = lambda name, status, score=-666: _playerFactory(name, status, score)
 
-class PlayerManager:
-    _extractName = re.compile(r"^(?:\x1b\[m|\x1b\[\d\;\d+m)*(.*?)(?:\x1b)")
+# _extractName = re.compile(r"^(?:\x1b\[m|\x1b\[\d\;\d+m)*(.*?)(?:\x1b)")
 
-    def __init__(self):
-        self._players = []
+_players = []
 
-    def _changePlayerStatus(self, playerName, status):
-        temp = PlayerManager._extractName.match(playerName)
-        if temp:
-            name = temp.groups()[0]
-            for player in self._players:
-                if player.name == name:
-                    player.status = status
-                    break
+def _changePlayerStatus(playerName, status):
+    print(_players)
+    # temp = _extractName.match(playerName)
+    if temp:
+        name = temp.groups()[0]
+        for player in _players:
+            print("{}=={}=={}".format(player.name, name, player.name == name))
+            if player.name == name:
+                player.status = status
+                return
+        _players.append(Player(playerName, status))
 
-    @staticmethod
-    def stripName(line):
-        temp = PlayerManager._extractName(line)
-        if temp:
-            return temp.groups()[0]
-        return None
+def stripName(line):
+    temp = PlayerManager._extractName(line)
+    if temp:
+        return temp.groups()[0]
+    return None
 
-    @events.PlayerConnectEvent.connect
-    def _playerStatusOnConnect(self, playerName):
-        # Events.PLAYER_JOIN.
-        self._changePlayerStatus(playerName, PLAYERSTATUS.CONNECTED)
+@PlayerConnectEvent.connect
+def _playerStatusOnConnect(name):
+    # Events.PLAYER_JOIN.
+    _changePlayerStatus(name, PLAYERSTATUS.CONNECTED)
 
-    @events.PlayerSpectateEvent.connect
-    def _playerStatusOnSpectate(self, playerName):
-        self._changePlayerStatus(playerName, PLAYERSTATUS.SPECTATING)
+@events.PlayerSpectateEvent.connect
+def _playerStatusOnSpectate(name):
+    _changePlayerStatus(name, PLAYERSTATUS.SPECTATING)
 
-    @events.PlayerSpectateEvent.connect
-    def _playerStatusOnJoin(self, playerName):
-        self._changePlayerStatus(playerName, PLAYERSTATUS.PLAYING)
+@events.PlayerSpectateEvent.connect
+def _playerStatusOnJoin(name):
+    _changePlayerStatus(name, PLAYERSTATUS.PLAYING)
 
-    @events.PlayerDisconnectEvent.connect
-    def _playerStatusOnDisconnect(self, playerName):
-        self._changePlayerStatus(playerName, PLAYERSTATUS.DISCONNECTED)
+@events.PlayerDisconnectEvent.connect
+def _playerStatusOnDisconnect(name):
+    _changePlayerStatus(name, PLAYERSTATUS.DISCONNECTED)
 
-    def _getPlayersByStatus(self, status):
-        return list(filter(lambda p: p.status == status, self._players))
+def _getPlayersByStatus(status):
+    return list(filter(lambda p: p.status == status, _players))
 
-    def getPlayers(self):
-        return self._players
+def getPlayers():
+    return _players
 
-    def getConnectedPlayers(self):
-        return self._getPlayersByStatus(PLAYERSTATUS.CONNECTED)
+def getConnectedPlayers():
+    return _getPlayersByStatus(PLAYERSTATUS.CONNECTED)
 
-    def getSpectatingPlayers(self):
-        return self._getPlayersByStatus(PLAYERSTATUS.SPECTATING)
+def getSpectatingPlayers():
+    return _getPlayersByStatus(PLAYERSTATUS.SPECTATING)
 
-    def getPlayingPlayers(self):
-        return self._getPlayersByStatus(PLAYERSTATUS.PLAYING)
+def getPlayingPlayers():
+    return _getPlayersByStatus(PLAYERSTATUS.PLAYING)
 
-    def getDisconnectedPlayers(self):
-        return self._getPlayersByStatus(PLAYERSTATUS.DISCONNECTED)
+def getDisconnectedPlayers():
+    return _getPlayersByStatus(PLAYERSTATUS.DISCONNECTED)
