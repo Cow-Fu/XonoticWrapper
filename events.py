@@ -1,10 +1,16 @@
 
 import re
-
 from abc import ABC, abstractmethod
+from enum import Enum, auto
+
+class EventTypes(Enum):
+    ACTIVE = auto()
+    PASSIVE = auto()
+    TEMPORARY = auto()
+
 
 class Event(ABC):
-    _exclude = False
+    _eventType = EventTypes.ACTIVE
     _has_handler = False
 
     @classmethod
@@ -140,7 +146,7 @@ class SuicideEvent(Event):
         return False
 
 class CmdEvent(Event):
-    _exclude = True
+    _eventType = EventTypes.PASSIVE
     _last_cmd = None
 
     @classmethod
@@ -148,7 +154,7 @@ class CmdEvent(Event):
         return cls._last_cmd == line
 
 class DebugEvent(Event):
-    _exclude = True
+    _eventType = EventTypes.PASSIVE
     @classmethod
     def check(cls, line):
         return True

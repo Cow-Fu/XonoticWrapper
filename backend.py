@@ -1,5 +1,6 @@
 from subprocess import Popen, PIPE
 from events import Event, DebugEvent, ChatMsgEvent, PlayerConnectEvent, FragEvent
+from events import EventTypes
 from xonIO import startXonoticProcess, outputStream, XonInput, XonOutput
 import PlayerManager
 import re
@@ -33,8 +34,9 @@ def lorax(victim, attacker, weapon, location, fragstreak):
 
 
 
-activeEvents = list(filter(lambda x: not x._exclude, Event.__subclasses__()))
-passiveEvents = list(filter(lambda x: x._exclude, Event.__subclasses__()))
+activeEvents = list(filter(lambda x: not x._eventType == EventTypes.ACTIVE, Event.__subclasses__()))
+passiveEvents = list(filter(lambda x: x._eventType == EventTypes.PASSIVE, Event.__subclasses__()))
+temporaryEvents =list(filter(lambda x: x._eventType == EventTypes.TEMPORARY, Event.__subclasses__()))
 
 writer, process = startXonoticProcess()
 
