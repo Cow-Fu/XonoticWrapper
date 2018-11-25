@@ -27,7 +27,6 @@ def stripSpecialChars(line):
         for i in range(7):
             temp = index + i + 1
             if line[temp] == "m":
-                print(index)
                 line[temp] = None
                 index = _findNext(line)
                 break
@@ -35,5 +34,3 @@ def stripSpecialChars(line):
                 line[temp] = None
 
     return _cleanup(list(filter(bool, line)))
-
-# print("".join(stripSpecialChars(test)))
