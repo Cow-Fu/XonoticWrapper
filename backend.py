@@ -33,8 +33,7 @@ def lorax(victim, attacker, weapon, location, fragstreak):
         streamWriter.addCmd('_cl_name Cow_Fu', 5.5)
 
 
-
-activeEvents = list(filter(lambda x: not x._eventType == EventTypes.ACTIVE, Event.__subclasses__()))
+activeEvents = list(filter(lambda x: x._eventType == EventTypes.ACTIVE, Event.__subclasses__()))
 passiveEvents = list(filter(lambda x: x._eventType == EventTypes.PASSIVE, Event.__subclasses__()))
 temporaryEvents =list(filter(lambda x: x._eventType == EventTypes.TEMPORARY, Event.__subclasses__()))
 
@@ -58,7 +57,7 @@ while streamReader.isAlive():
                 triggeredEvents.append(e)
 
         if triggeredEvents:
-            print("{}{}".format([line], triggeredEvents))
+            print("{}{}".format(line, triggeredEvents))
             for e in triggeredEvents:
                 if getattr(e, "_cache"):
                     e.fire(**e._cache)
