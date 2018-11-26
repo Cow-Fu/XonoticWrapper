@@ -159,7 +159,10 @@ class DebugEvent(Event):
     def check(cls, line):
         return True
 
-for c in Event.__subclasses__():
-    print(c)
-    setattr(c, "_handlers", [])
-    setattr(c, "_cache", {})
+def addAttrs():
+    for c in Event.__subclasses__():
+        if not hasattr(c, "_handlers"):
+            setattr(c, "_handlers", [])
+        if not hasattr(c, "_cache"):
+            setattr(c, "_cache", {})
+addAttrs()
