@@ -21,7 +21,7 @@ from time import sleep
 
 @ChatMsgEvent.connect
 def moose(line, sender, message):
-    if not sender == "Cow_Fu" and "moose" in message:
+    if "moose" == message:
         writer('defer 1 "say why does everyone keep saying moose?"')
 
 @FragEvent.connect
@@ -64,6 +64,6 @@ while streamReader.isAlive():
                 else:
                     e.fire(line)
         else:
-            print("{}{}".format(line, passiveEvents[1]))
+            print("{}{}".format([line], passiveEvents[1]))
     else:
         sleep(.05)

@@ -9,7 +9,7 @@ class EventTypes(Enum):
     TEMPORARY = auto()
 
 
-class Event(ABC):
+class Event:
     _eventType = EventTypes.ACTIVE
     _has_handler = False
 
@@ -40,6 +40,64 @@ class Event(ABC):
     def fire(cls, *args, **kwargs):
         for func in cls._handlers:
             func(*args, **kwargs)
+
+
+class TemporaryEvent(ABC):
+    _enabled = False
+
+    @classmethod
+    def enable(cls):
+        cls._enabled = True
+
+    @classmethod
+    def disable(cls):
+        cls._enabled = False
+
+    @classmethod
+    def isEnabled(cls):
+        return cls._enabled
+
+    @abstractmethod
+    def checkEnable():
+        pass
+
+    @abstractmethod
+    def checkDisable():
+        pass
+
+
+class GetCurrentPlayers(Event, TemporaryEvent):
+    _enableRegex = re.compile(r"^ent\s+nickname\s+ping\s+pl\s+time\s+ip\s+crypto_id")
+    _disableRegex = re.compile(r"Finished listing \d+ client\(s\) out of \d+ slots\.")
+    _checkRegex = re.compile(r"^(?P<id>#\d+)\s+(?P<name>.*?)\s+(?P<ping>\d+)\s+(?P<packetloss>\d+)\s+(?P<time>[\d:]+)\s+\S+\s+\S+$")
+    @classmethod
+    def checkEnable(cls, line):
+        if cls._enableRegex.match(line):
+            cls.enable()
+
+    @classmethod
+    def checkDisable(cls, line):
+        if cls._disableRegex.match(line):
+            cls.disable()
+
+    @classmethod
+    def check(cls, line):
+        temp = cls._checkRegex.match(line)
+        if temp:
+            _cache = temp.groupdict()
+            return True
+        return False
+
+
+# class TemporaryEventManager:
+#     def enable(self, cls):
+#         if cls in self.events:
+#             self.events[self.events.index(cls)].enabled = True
+#         else:
+#             raise ValueError()
+#
+#     def __init__(self, events):
+#         self.events = events
 
 class PlayerConnectingEvent(Event):
     @classmethod
@@ -165,4 +223,6 @@ def addAttrs():
             setattr(c, "_handlers", [])
         if not hasattr(c, "_cache"):
             setattr(c, "_cache", {})
+        if c._eventType == EventTypes.TEMPORARY and not hasattr(c, "_enabled"):
+            setattr(c, "_enabled", False)
 addAttrs()
